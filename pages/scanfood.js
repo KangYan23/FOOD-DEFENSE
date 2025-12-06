@@ -828,36 +828,161 @@ export default function ScanFood() {
             }
           }
 
-          /* Mobile Landscape Fixes */
-          @media (max-width: 600px) and (orientation: portrait) {
+          /* Mobile Responsive Design */
+          @media (max-width: 844px) {
+            .game-container {
+              padding: 10px;
+            }
+
             .game-frame {
-               transform: rotate(90deg);
-               transform-origin: center;
-               width: 100vh;
-               height: 100vw;
-               max-height: 100vw;
-               position: absolute;
-               top: 50%;
-               left: 50%;
-               margin-left: -50vh;
-               margin-top: -50vw;
+              max-width: 100%;
+              max-height: 100%;
+              padding: 10px;
+            }
+
+            .game-title {
+              font-size: 28px;
+              padding: 8px 20px;
+            }
+
+            .wooden-panel {
+              min-width: 280px;
+              max-width: 90vw;
+              padding: 20px;
+              margin: 10px;
+            }
+
+            .wooden-panel.camera-panel {
+              max-width: 95vw;
+              padding: 15px;
+            }
+
+            .camera-preview {
+              height: 250px;
+              margin-bottom: 15px;
+            }
+
+            .camera-controls {
+              flex-direction: row;
+              gap: 10px;
+              justify-content: center;
+              flex-wrap: wrap;
+            }
+
+            .wood-button {
+              font-size: 16px;
+              padding: 10px 20px;
+              margin: 5px;
+            }
+
+            .start-btn {
+              font-size: 18px;
+            }
+
+            .parchment-bg {
+              max-width: 95vw;
+              padding: 20px;
+              margin: 10px;
+            }
+
+            .result-header {
+              flex-direction: column;
+              gap: 10px;
+              text-align: center;
+            }
+
+            .food-name {
+              font-size: 22px;
+            }
+
+            .stat-label {
+              width: 60px;
+              font-size: 12px;
+            }
+
+            .stat-value {
+              width: 80px;
+              font-size: 11px;
+            }
+          }
+
+          /* iPhone 13 and similar devices */
+          @media (max-width: 390px) and (max-height: 844px) {
+            .game-frame {
+              padding: 5px;
+            }
+
+            .game-title {
+              font-size: 24px;
+              padding: 6px 16px;
+            }
+
+            .wooden-panel {
+              min-width: 260px;
+              padding: 15px;
+            }
+
+            .wooden-panel.camera-panel {
+              padding: 10px;
+            }
+
+            .camera-preview {
+              height: 200px;
+            }
+
+            .wood-button {
+              font-size: 14px;
+              padding: 8px 16px;
+            }
+
+            .start-btn {
+              font-size: 16px;
+            }
+
+            .camera-controls {
+              gap: 8px;
             }
 
             .envelope {
-              width: 250px;
-              height: 160px;
+              width: 200px;
+              height: 130px;
             }
 
             .envelope.open .photo-1 {
-              transform: scale(1) rotateY(-15deg) translateX(-110px) translateY(-20px);
+              transform: scale(0.8) rotateY(-15deg) translateX(-90px) translateY(-15px);
             }
 
             .envelope.open .photo-2 {
-              transform: scale(1) rotateY(0deg) translateX(0) translateY(-40px);
+              transform: scale(0.8) rotateY(0deg) translateX(0) translateY(-30px);
             }
 
             .envelope.open .photo-3 {
-              transform: scale(1) rotateY(15deg) translateX(110px) translateY(-20px);
+              transform: scale(0.8) rotateY(15deg) translateX(90px) translateY(-15px);
+            }
+
+            .envelope-next-button {
+              bottom: 300px;
+            }
+          }
+
+          /* Landscape orientation for mobile */
+          @media (max-height: 500px) and (orientation: landscape) {
+            .game-title {
+              font-size: 20px;
+              padding: 4px 12px;
+            }
+
+            .wooden-panel {
+              padding: 10px;
+            }
+
+            .camera-preview {
+              height: 150px;
+            }
+
+            .wood-button {
+              font-size: 12px;
+              padding: 6px 12px;
             }
           }
         `}</style>

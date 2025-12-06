@@ -1,71 +1,114 @@
 import { useRouter } from 'next/router';
+import Head from 'next/head';
 
 export default function Home() {
   const router = useRouter();
+  
   return (
-    <div
-      style={{
-        position: "relative",
-        backgroundImage: `url('/background1.png')`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
-        width: "100%",
-        minHeight: "100vh",
-      }}
-      aria-label="Background image"
-    >
-      <img
-        src="/title2.png"
-        alt="Title"
-        style={{
-          position: "absolute",
-          top: "200px",
-          right: "60px",
-          maxWidth: "35%",
-          height: "auto",
-        }}
-      />
-      <button
-        style={{
-          position: "absolute",
-          top: "50%",
-          left: "calc(50% + 12cm)",
-          transform: "translate(-50%, -50%)",
-          background: "linear-gradient(145deg, #d2a679, #b8935f)",
-          border: "3px solid #8b4513",
-          borderRadius: "15px",
-          padding: "12px 32px",
-          fontSize: "28px",
-          fontWeight: "bold",
-          color: "white",
-          textShadow: "2px 2px 4px rgba(0,0,0,0.8)",
-          boxShadow: "0 6px 0 #8b4513, 0 8px 15px rgba(0,0,0,0.4)",
-          cursor: "pointer",
-          fontFamily: "Arial, sans-serif",
-          letterSpacing: "2px",
-          transform: "translateY(0)",
-          transition: "all 0.1s ease",
-        }}
-        onMouseDown={(e) => {
-          e.target.style.transform = "translateY(3px)";
-          e.target.style.boxShadow = "0 3px 0 #8b4513, 0 5px 10px rgba(0,0,0,0.4)";
-        }}
-        onMouseUp={(e) => {
-          e.target.style.transform = "translateY(0)";
-          e.target.style.boxShadow = "0 6px 0 #8b4513, 0 8px 15px rgba(0,0,0,0.4)";
-        }}
-        onMouseLeave={(e) => {
-          e.target.style.transform = "translateY(0)";
-          e.target.style.boxShadow = "0 6px 0 #8b4513, 0 8px 15px rgba(0,0,0,0.4)";
-        }}
-        onClick={() => {
-          console.log("START button clicked!");
-          router.push('/scanfood');
-        }}
-      >
-        START
-      </button>
-    </div>
+    <>
+      <Head>
+        <title>Food Defense</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0" />
+      </Head>
+      <div className="main-container">
+        <img className="title-image" src="/title2.png" alt="Title" />
+        <button className="start-button" onClick={() => router.push('/scanfood')}>
+          START
+        </button>
+
+        <style jsx>{`
+          .main-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            background-image: url('/background1.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+          }
+
+          .title-image {
+            position: absolute;
+            top: 200px;
+            right: 60px;
+            max-width: 35%;
+            height: auto;
+            z-index: 2;
+          }
+
+          .start-button {
+            position: absolute;
+            background: linear-gradient(145deg, #d2a679, #b8935f);
+            border: 3px solid #8b4513;
+            border-radius: 15px;
+            padding: 12px 32px;
+            font-size: 28px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            box-shadow: 0 6px 0 #8b4513, 0 8px 15px rgba(0,0,0,0.4);
+            cursor: pointer;
+            font-family: Arial, sans-serif;
+            letter-spacing: 2px;
+            transition: all 0.1s ease;
+            top: 50%;
+            right: 80px;
+            transform: translateY(-50%);
+            z-index: 3;
+          }
+
+          .start-button:active {
+            transform: translateY(-47px);
+            box-shadow: 0 3px 0 #8b4513, 0 5px 10px rgba(0,0,0,0.4);
+          }
+
+          /* Mobile Responsive */
+          @media (max-width: 768px) {
+            .main-container {
+              background-size: cover;
+              background-position: center center;
+            }
+
+            .title-image {
+              top: 20%;
+              left: 50%;
+              right: auto;
+              transform: translateX(-50%);
+              max-width: 80%;
+            }
+
+            .start-button {
+              top: 70%;
+              left: 50%;
+              right: auto;
+              transform: translate(-50%, -50%);
+              font-size: 24px;
+              padding: 10px 28px;
+            }
+
+            .start-button:active {
+              transform: translate(-50%, -47px);
+            }
+          }
+
+          @media (max-width: 480px) {
+            .title-image {
+              max-width: 90%;
+              top: 15%;
+            }
+
+            .start-button {
+              font-size: 20px;
+              padding: 8px 24px;
+              top: 75%;
+            }
+          }
+        `}</style>
+      </div>
+    </>
   );
 }
