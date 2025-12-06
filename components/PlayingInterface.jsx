@@ -5,17 +5,18 @@ import { GameManager, ROWS, COLS } from '../scripts/GameManager';
 const gameManager = new GameManager();
 
 const SELECTION_ITEMS = [
-    { type: 'sun_flower.png', cost: 50, label: 'Sunflower' },
+    { type: 'sun_flower_animation.mp4', cost: 50, label: 'Sunflower' },
     { type: 'pea_shooter.png', cost: 100, label: 'Pea Shooter' },
     { type: 'carrot_guardian.png', cost: 100, label: 'Carrot Guardian' },
 ];
 
 const Unit = ({ type, onResourceGen }) => {
+    const isVideo = type.endsWith('.mp4');
+
     useEffect(() => {
         let interval;
-        if (type.includes('sun_flower')) {
-            // Generate sun every 5 seconds for static images
-            // Or use animation loop if it was a video, but now we use PNG.
+        // Only use interval for non-video sunflowers (static images)
+        if (type.includes('sun_flower') && !isVideo) {
             interval = setInterval(() => {
                 onResourceGen(50);
             }, 5000);
@@ -23,29 +24,20 @@ const Unit = ({ type, onResourceGen }) => {
         return () => {
             if (interval) clearInterval(interval);
         };
-    }, [type, onResourceGen]);
-
-    // Render logic
-    const isVideo = type.endsWith('.mp4');
+    }, [type, onResourceGen, isVideo]);
 
     return (
-        <div className="relative w-[90%] h-[90%] animate-bounce-short">
+        <div className="relative w-full h-full animate-bounce-short">
             {isVideo ? (
                 <video
                     src={`/${type}`}
                     autoPlay
-                    loop={!type.includes('sun_flower')} // Keep potential video logic if mixed types exist
+                    loop={!type.includes('sun_flower')} // Manual loop for sunflower to track cycles
                     playsInline
-                    className="w-full h-full object-contain drop-shadow-2xl"
+                    className="w-full h-full object-contain drop-shadow-2xl scale-[2.5]"
                     onEnded={(e) => {
-                        // Fallback for video-based sun generation if somehow still used
                         if (type.includes('sun_flower')) {
-                            // Managed by interval now to support PNG, but could double dip if not careful.
-                            // Since we are moving to PNG, this might not be reached. 
-                            // If the user reverts to video, we might want to suppress this or handle it.
-                            // For now, removing the side-effect here to rely on the interval for consistency 
-                            // OR strictly relying on this for video.
-                            // But let's assume we stick to the interval for the logic.
+                            onResourceGen(50);
                             e.target.currentTime = 0;
                             e.target.play();
                         }
@@ -167,13 +159,24 @@ export default function PlayingInterface() {
                                 title={`${item.label} (${item.cost})`}
                             >
                                 <div className="relative w-full h-full">
-                                    <Image
-                                        src={`/${item.type}`}
-                                        alt={item.label}
-                                        fill
-                                        className="object-cover group-hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]"
-                                        sizes="64px"
-                                    />
+                                    {item.type.endsWith('.mp4') ? (
+                                        <video
+                                            src={`/${item.type}`}
+                                            autoPlay
+                                            loop
+                                            muted
+                                            playsInline
+                                            className="w-full h-full object-cover group-hover:brightness-110"
+                                        />
+                                    ) : (
+                                        <Image
+                                            src={`/${item.type}`}
+                                            alt={item.label}
+                                            fill
+                                            className="object-cover group-hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]"
+                                            sizes="64px"
+                                        />
+                                    )}
                                 </div>
                                 <div className="absolute -bottom-1 -right-1 bg-yellow-500 text-black text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center border border-white z-10">
                                     {item.cost}
