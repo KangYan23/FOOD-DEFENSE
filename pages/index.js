@@ -1,9 +1,28 @@
 import { useRouter } from 'next/router';
+import { useEffect, useRef } from 'react';
 import Head from 'next/head';
 
 export default function Home() {
   const router = useRouter();
-  
+  const audioRef = useRef(null);
+
+  // Background Music
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.volume = 0.3;
+      audioRef.current.play().catch(err => {
+        console.log('Audio autoplay prevented:', err);
+      });
+    }
+
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      }
+    };
+  }, []);
+
   return (
     <>
       <Head>
@@ -11,6 +30,14 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0" />
       </Head>
       <div className="main-container">
+        {/* Background Music */}
+        <audio
+          ref={audioRef}
+          src="/POL-pet-park-short.wav"
+          loop
+          preload="auto"
+        />
+
         <img className="title-image" src="/title2.png" alt="Title" />
         <button className="start-button" onClick={() => router.push('/scanfood')}>
           START

@@ -13,14 +13,32 @@ export default function ScanFood() {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const streamRef = useRef(null);
+  const audioRef = useRef(null);
+
+  // Background Music
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.volume = 0.3;
+      audioRef.current.play().catch(err => {
+        console.log('Audio autoplay prevented:', err);
+      });
+    }
+
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      }
+    };
+  }, []);
 
   // Calculate nutritional percentages for display bars
   const calculateNutritionPercentages = (nutrition) => {
     if (!nutrition) return { carbs: 0, protein: 0, fiber: 0, fat: 0 };
-    
+
     const total = nutrition.carbohydrates + nutrition.protein + nutrition.fiber + nutrition.fat;
     if (total === 0) return { carbs: 0, protein: 0, fiber: 0, fat: 0 };
-    
+
     return {
       carbs: Math.round((nutrition.carbohydrates / total) * 100),
       protein: Math.round((nutrition.protein / total) * 100),
@@ -72,7 +90,7 @@ export default function ScanFood() {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         console.error('API Error:', response.status, errorData);
-        
+
         if (response.status === 401) {
           throw new Error('API authentication failed. Please check your API key.');
         } else if (response.status === 404) {
@@ -98,7 +116,7 @@ export default function ScanFood() {
   const scanAgain = () => {
     setShowEnvelope(true);
     setEnvelopeOpen(false);
-    
+
     // Trigger envelope opening animation after a short delay
     setTimeout(() => {
       setEnvelopeOpen(true);
@@ -158,6 +176,14 @@ export default function ScanFood() {
       </Head>
 
       <div className="game-container">
+        {/* Background Music */}
+        <audio
+          ref={audioRef}
+          src="/POL-pet-park-short.wav"
+          loop
+          preload="auto"
+        />
+
         {/* Main Game Frame */}
         <div className="game-frame">
 
@@ -234,9 +260,9 @@ export default function ScanFood() {
                       <div className="stat-row">
                         <span className="stat-label">Carbs</span>
                         <div className="stat-bar">
-                          <div className="fill" style={{ 
-                            width: `${percentages.carbs}%`, 
-                            background: '#ffd93d' 
+                          <div className="fill" style={{
+                            width: `${percentages.carbs}%`,
+                            background: '#ffd93d'
                           }}></div>
                         </div>
                         <span className="stat-value">{result.nutrition.carbohydrates}g ({percentages.carbs}%)</span>
@@ -244,9 +270,9 @@ export default function ScanFood() {
                       <div className="stat-row">
                         <span className="stat-label">Protein</span>
                         <div className="stat-bar">
-                          <div className="fill" style={{ 
-                            width: `${percentages.protein}%`, 
-                            background: '#ff6b9d' 
+                          <div className="fill" style={{
+                            width: `${percentages.protein}%`,
+                            background: '#ff6b9d'
                           }}></div>
                         </div>
                         <span className="stat-value">{result.nutrition.protein}g ({percentages.protein}%)</span>
@@ -254,9 +280,9 @@ export default function ScanFood() {
                       <div className="stat-row">
                         <span className="stat-label">Fiber</span>
                         <div className="stat-bar">
-                          <div className="fill" style={{ 
-                            width: `${percentages.fiber}%`, 
-                            background: '#6bcf7f' 
+                          <div className="fill" style={{
+                            width: `${percentages.fiber}%`,
+                            background: '#6bcf7f'
                           }}></div>
                         </div>
                         <span className="stat-value">{result.nutrition.fiber}g ({percentages.fiber}%)</span>
@@ -264,9 +290,9 @@ export default function ScanFood() {
                       <div className="stat-row">
                         <span className="stat-label">Fat</span>
                         <div className="stat-bar">
-                          <div className="fill" style={{ 
-                            width: `${percentages.fat}%`, 
-                            background: '#ff9a76' 
+                          <div className="fill" style={{
+                            width: `${percentages.fat}%`,
+                            background: '#ff9a76'
                           }}></div>
                         </div>
                         <span className="stat-value">{result.nutrition.fat}g ({percentages.fat}%)</span>

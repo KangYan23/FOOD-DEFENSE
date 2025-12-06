@@ -1,9 +1,28 @@
 import Head from 'next/head';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
+import { useEffect, useRef } from 'react';
 
 export default function Level1() {
   const router = useRouter();
+  const audioRef = useRef(null);
+
+  // Background Music
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.volume = 0.3;
+      audioRef.current.play().catch(err => {
+        console.log('Audio autoplay prevented:', err);
+      });
+    }
+
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      }
+    };
+  }, []);
 
   const handleClick = () => {
     router.push('/battlescene');
@@ -17,6 +36,14 @@ export default function Level1() {
       </Head>
 
       <div className="level1-container" onClick={handleClick}>
+        {/* Background Music */}
+        <audio
+          ref={audioRef}
+          src="/POL-pet-park-short.wav"
+          loop
+          preload="auto"
+        />
+
         <Image
           src="/level1.png"
           alt="Level 1 Background"

@@ -59,7 +59,7 @@ const Unit = ({ type, onResourceGen }) => {
 
 export default function PlayingInterface() {
     const router = useRouter();
-    
+
     // Initialize grid state
     const [grid, setGrid] = useState(Array(ROWS).fill(null).map(() => Array(COLS).fill(null)));
     const [selectedPet, setSelectedPet] = useState(null);
@@ -69,11 +69,29 @@ export default function PlayingInterface() {
     const waveRef = useRef(1);
     const processingWave = useRef(false);
     const gridRef = useRef(grid);
+    const audioRef = useRef(null);
 
     // Sync gridRef with grid state
     useEffect(() => {
         gridRef.current = grid;
     }, [grid]);
+
+    // Background Music
+    useEffect(() => {
+        if (audioRef.current) {
+            audioRef.current.volume = 0.5; // Set volume to 50%
+            audioRef.current.play().catch(err => {
+                console.log('Audio autoplay prevented:', err);
+            });
+        }
+
+        return () => {
+            if (audioRef.current) {
+                audioRef.current.pause();
+                audioRef.current.currentTime = 0;
+            }
+        };
+    }, []);
 
     // Game Loop
     useEffect(() => {
@@ -176,6 +194,14 @@ export default function PlayingInterface() {
 
     return (
         <div className="w-screen h-screen bg-black overflow-hidden">
+            {/* Background Music */}
+            <audio
+                ref={audioRef}
+                src="/ONE LAST FIGHT  Epic Battle Rock Music.mp3"
+                loop
+                preload="auto"
+            />
+
             {/* 
                 GAME CONTAINER: Full screen background
             */}

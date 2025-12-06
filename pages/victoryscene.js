@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 
@@ -6,13 +6,31 @@ export default function VictoryScene() {
   const router = useRouter();
   const [showEnvelope, setShowEnvelope] = useState(false);
   const [envelopeOpen, setEnvelopeOpen] = useState(false);
+  const audioRef = useRef(null);
+
+  // Background Music
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.volume = 0.3;
+      audioRef.current.play().catch(err => {
+        console.log('Audio autoplay prevented:', err);
+      });
+    }
+
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      }
+    };
+  }, []);
 
   // Start victory animation on component mount
   useEffect(() => {
     // Show envelope after a short delay
     const timer = setTimeout(() => {
       setShowEnvelope(true);
-      
+
       // Trigger envelope opening animation after a short delay
       setTimeout(() => {
         setEnvelopeOpen(true);
@@ -41,6 +59,14 @@ export default function VictoryScene() {
       </Head>
 
       <div className="victory-container">
+        {/* Background Music */}
+        <audio
+          ref={audioRef}
+          src="/POL-pet-park-short.wav"
+          loop
+          preload="auto"
+        />
+
         {/* Victory Message */}
         <div className="victory-header">
           <h1 className="victory-title">VICTORY!</h1>
