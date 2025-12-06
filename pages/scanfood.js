@@ -153,7 +153,7 @@ export default function ScanFood() {
     <>
       <Head>
         <title>Food Defense Scanner</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0, orientation=landscape" />
         <link href="https://fonts.googleapis.com/css2?family=Titan+One&family=Nunito:wght@400;700&display=swap" rel="stylesheet" />
       </Head>
 
@@ -343,11 +343,14 @@ export default function ScanFood() {
           .game-frame {
             width: 100%;
             height: 100%;
-            max-width: 900px;
-            max-height: 450px;
+            max-width: 100vw;
+            max-height: 100vh;
             position: relative;
             display: flex;
-            flex-direction: column;
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px;
           }
 
           /* Header with Banner */
@@ -388,6 +391,14 @@ export default function ScanFood() {
             justify-content: center;
             padding: 20px;
             position: relative;
+          }
+
+          @media (orientation: landscape) {
+            .game-stage {
+              flex-direction: row;
+              justify-content: space-around;
+              padding: 10px;
+            }
           }
 
           .menu-screen {
@@ -964,24 +975,106 @@ export default function ScanFood() {
             }
           }
 
-          /* Landscape orientation for mobile */
-          @media (max-height: 500px) and (orientation: landscape) {
+          /* iPhone 13 Landscape Mode (844px x 390px) */
+          @media (orientation: landscape) and (max-height: 430px) {
+            .game-container {
+              flex-direction: row;
+            }
+
+            .game-frame {
+              flex-direction: row;
+              align-items: center;
+              justify-content: space-around;
+              padding: 5px;
+            }
+
+            .game-header {
+              position: fixed;
+              top: 5px;
+              left: 10px;
+              width: auto;
+              transform: none;
+            }
+
             .game-title {
-              font-size: 20px;
-              padding: 4px 12px;
+              font-size: 18px;
+              padding: 3px 8px;
+              margin: 0;
+            }
+
+            .game-stage {
+              display: flex;
+              flex-direction: row;
+              align-items: center;
+              justify-content: space-around;
+              width: 100%;
+              height: 100%;
+              gap: 10px;
             }
 
             .wooden-panel {
-              padding: 10px;
+              min-width: 200px;
+              max-width: 300px;
+              padding: 8px;
+              margin: 0;
+            }
+
+            .wooden-panel.camera-panel {
+              padding: 5px;
             }
 
             .camera-preview {
-              height: 150px;
+              height: 200px;
+              width: 300px;
             }
 
             .wood-button {
+              font-size: 11px;
+              padding: 4px 8px;
+            }
+
+            .start-btn {
+              font-size: 14px;
+            }
+
+            .camera-controls {
+              gap: 5px;
+              flex-direction: row;
+            }
+
+            .envelope {
+              width: 150px;
+              height: 100px;
+            }
+
+            .envelope.open .photo-1,
+            .envelope.open .photo-2,
+            .envelope.open .photo-3 {
+              width: 40px;
+              height: 40px;
+            }
+
+            .envelope-next-button {
+              bottom: 10px;
+              right: 10px;
+            }
+
+            .stats-grid {
+              grid-template-columns: repeat(2, 1fr);
+              gap: 5px;
+            }
+
+            .stat-item {
+              padding: 5px;
+            }
+
+            .stat-label {
+              font-size: 10px;
+            }
+
+            .stat-value {
               font-size: 12px;
-              padding: 6px 12px;
+              width: 60px;
             }
           }
         `}</style>
