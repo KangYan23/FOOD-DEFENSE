@@ -27,6 +27,12 @@ export class GameManager {
         return newGrid;
     }
 
+    removeDefender(grid, rowIndex, colIndex) {
+        const newGrid = grid.map(row => [...row]);
+        newGrid[rowIndex][colIndex] = null;
+        return newGrid;
+    }
+
     // Placeholder for future enemy logic
     spawnEnemy() {
         // Logic to spawn enemy
