@@ -1,0 +1,17 @@
+[33mcommit 3c8121137f80f1453cf7024e3e82d8811de90594[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m
+Author: Imcz-dotcom <chuanzhe0904@gmail.com>
+Date:   Sat Dec 6 21:29:14 2025 +0800
+
+    feat: Implement initial game core with the playing interface, grid management, and unit placement.
+
+[33mcommit 9f1e3c53d0b7c13af85a4b916d358d90aa184ab1[m[33m ([m[1;31morigin/zh[m[33m, [m[1;31morigin/nicole[m[33m, [m[1;31morigin/cz[m[33m)[m
+Author: KangYan <kangyan23@gmail.com>
+Date:   Sat Dec 6 19:06:34 2025 +0800
+
+    first commit
+
+[33mcommit aa3693eef11eba8cd66432a9e4d4adcef02a68f0[m
+Author: KangYan <kangyan23@gmail.com>
+Date:   Sat Dec 6 19:04:01 2025 +0800
+
+    Initial commit from Create Next App
