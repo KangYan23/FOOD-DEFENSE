@@ -1,4 +1,7 @@
+import { useRouter } from 'next/router';
+
 export default function Home() {
+  const router = useRouter();
   return (
     <div
       style={{
@@ -27,7 +30,7 @@ export default function Home() {
         style={{
           position: "absolute",
           top: "50%",
-          left: "calc(50% + 9cm)",
+          left: "calc(50% + 12cm)",
           transform: "translate(-50%, -50%)",
           background: "linear-gradient(145deg, #d2a679, #b8935f)",
           border: "3px solid #8b4513",
@@ -58,7 +61,7 @@ export default function Home() {
         }}
         onClick={() => {
           console.log("START button clicked!");
-          // Add your game start logic here
+          router.push('/scanfood');
         }}
       >
         START

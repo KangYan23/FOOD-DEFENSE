@@ -6,6 +6,8 @@ export default function ScanFood() {
   const [analyzing, setAnalyzing] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
+  const [showEnvelope, setShowEnvelope] = useState(false);
+  const [envelopeOpen, setEnvelopeOpen] = useState(false);
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const streamRef = useRef(null);
@@ -92,6 +94,18 @@ export default function ScanFood() {
   };
 
   const scanAgain = () => {
+    setShowEnvelope(true);
+    setEnvelopeOpen(false);
+    
+    // Trigger envelope opening animation after a short delay
+    setTimeout(() => {
+      setEnvelopeOpen(true);
+    }, 500);
+  };
+
+  const handleNextClick = () => {
+    setShowEnvelope(false);
+    setEnvelopeOpen(false);
     setResult(null);
     setError(null);
     startCamera();
@@ -262,13 +276,40 @@ export default function ScanFood() {
 
                     <div className="action-row">
                       <button className="wood-button small-btn" onClick={scanAgain}>
-                        NEW TARGET
+                        GET YOUR PLANTS
                       </button>
                     </div>
                   </div>
                 </div>
               );
             })()}
+
+            {showEnvelope && (
+              <div className="envelope-container">
+                <div className={`envelope ${envelopeOpen ? 'open' : ''}`}>
+                  <div className="envelope-back"></div>
+                  <div className="envelope-flap"></div>
+                  <div className="photos-container">
+                    <div className="photo photo-1">
+                      <img src="/chris.jpg" alt="Chris" />
+                    </div>
+                    <div className="photo photo-2">
+                      <img src="/carrot.jpg" alt="Carrot" />
+                    </div>
+                    <div className="photo photo-3">
+                      <img src="/dou.jpg" alt="Dou" />
+                    </div>
+                  </div>
+                </div>
+                {envelopeOpen && (
+                  <div className="envelope-next-button">
+                    <button className="wood-button next-btn" onClick={handleNextClick}>
+                      NEXT
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
 
             {error && (
               <div className="error-popup">
@@ -469,6 +510,36 @@ export default function ScanFood() {
             font-size: 18px;
           }
 
+          .next-btn {
+            background: #8d6e63;
+            border-color: #5d4037;
+            color: #fff;
+            text-shadow: 1px 1px 0 rgba(0,0,0,0.3);
+            font-size: 20px;
+          }
+
+          /* Envelope Next Button */
+          .envelope-next-button {
+            position: absolute;
+            bottom: 372px;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            animation: slideUpFade 0.8s ease-out 1.8s forwards;
+            z-index: 1001;
+          }
+
+          @keyframes slideUpFade {
+            from {
+              opacity: 0;
+              transform: translateX(-50%) translateY(20px);
+            }
+            to {
+              opacity: 1;
+              transform: translateX(-50%) translateY(0);
+            }
+          }
+
           /* Results Parchment */
           .results-board {
             display: flex;
@@ -624,6 +695,139 @@ export default function ScanFood() {
             text-shadow: 0 10px 20px rgba(0,0,0,0.2);
           }
 
+          /* Envelope Animation */
+          .envelope-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(2px);
+            z-index: 1000;
+            animation: fadeIn 0.5s ease-in-out;
+          }
+
+          .envelope {
+            position: relative;
+            width: 300px;
+            height: 200px;
+            perspective: 1000px;
+            transform-style: preserve-3d;
+          }
+
+          .envelope-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #f5f1eb, #e8ddd4);
+            border: 2px solid #d4c4b0;
+            border-radius: 8px;
+            box-shadow: 
+              0 10px 30px rgba(0, 0, 0, 0.3),
+              inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            transform: translateZ(0);
+          }
+
+          .envelope-flap {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 60%;
+            background: linear-gradient(135deg, #f8f4ee, #ebe0d7);
+            border: 2px solid #d4c4b0;
+            border-bottom: none;
+            border-radius: 8px 8px 0 0;
+            transform-origin: bottom;
+            transform: rotateX(0deg) translateZ(1px);
+            transition: transform 1.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            box-shadow: 
+              0 5px 15px rgba(0, 0, 0, 0.2),
+              inset 0 1px 0 rgba(255, 255, 255, 0.4);
+          }
+
+          .envelope.open .envelope-flap {
+            transform: rotateX(-120deg) translateZ(1px);
+          }
+
+          .photos-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80%;
+            height: 70%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+
+          .photo {
+            position: absolute;
+            width: 120px;
+            height: 120px;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 
+              0 12px 35px rgba(0, 0, 0, 0.3),
+              0 0 0 4px rgba(255, 255, 255, 0.9);
+            transform: scale(0) rotateY(0deg) translateX(0) translateY(0);
+            transition: all 2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            background: white;
+          }
+
+          .photo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+          }
+
+          .envelope.open .photo {
+            transform: scale(1);
+          }
+
+          .envelope.open .photo-1 {
+            transform: scale(1) rotateY(-15deg) translateX(-140px) translateY(-30px);
+            transition-delay: 0.5s;
+          }
+
+          .envelope.open .photo-2 {
+            transform: scale(1) rotateY(0deg) translateX(0) translateY(-50px);
+            transition-delay: 0.8s;
+          }
+
+          .envelope.open .photo-3 {
+            transform: scale(1) rotateY(15deg) translateX(140px) translateY(-30px);
+            transition-delay: 1.1s;
+          }
+
+          .photo-1 {
+            z-index: 3;
+          }
+
+          .photo-2 {
+            z-index: 4;
+          }
+
+          .photo-3 {
+            z-index: 3;
+          }
+
+          @keyframes fadeIn {
+            from {
+              opacity: 0;
+              transform: scale(0.9);
+            }
+            to {
+              opacity: 1;
+              transform: scale(1);
+            }
+          }
+
           /* Mobile Landscape Fixes */
           @media (max-width: 600px) and (orientation: portrait) {
             .game-frame {
@@ -637,6 +841,23 @@ export default function ScanFood() {
                left: 50%;
                margin-left: -50vh;
                margin-top: -50vw;
+            }
+
+            .envelope {
+              width: 250px;
+              height: 160px;
+            }
+
+            .envelope.open .photo-1 {
+              transform: scale(1) rotateY(-15deg) translateX(-110px) translateY(-20px);
+            }
+
+            .envelope.open .photo-2 {
+              transform: scale(1) rotateY(0deg) translateX(0) translateY(-40px);
+            }
+
+            .envelope.open .photo-3 {
+              transform: scale(1) rotateY(15deg) translateX(110px) translateY(-20px);
             }
           }
         `}</style>
