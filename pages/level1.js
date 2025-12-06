@@ -1,13 +1,30 @@
 import Head from 'next/head';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
-import { useEffect, useRef } from 'react';
 
 export default function Level1() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
+  const audioRef = useRef(null);
+
+  // Background Music
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.volume = 0.3;
+      audioRef.current.play().catch(err => {
+        console.log('Audio autoplay prevented:', err);
+      });
+    }
+
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      }
+    };
+  }, []);
 
   const handleClick = () => {
     if (loading) return;
