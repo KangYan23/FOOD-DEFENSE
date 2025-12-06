@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/router';
 import Image from 'next/image';
 import { GameManager, ROWS, COLS } from '../scripts/GameManager';
 
@@ -57,13 +58,14 @@ const Unit = ({ type, onResourceGen }) => {
 };
 
 export default function PlayingInterface() {
+    const router = useRouter();
+    
     // Initialize grid state
     const [grid, setGrid] = useState(Array(ROWS).fill(null).map(() => Array(COLS).fill(null)));
     const [selectedPet, setSelectedPet] = useState(null);
     const [resources, setResources] = useState(300); // "Sun" currency
     const [isShovelActive, setIsShovelActive] = useState(false);
     const [enemies, setEnemies] = useState([]);
-    const [gameWon, setGameWon] = useState(false);
     const waveRef = useRef(1);
     const processingWave = useRef(false);
     const gridRef = useRef(grid);
@@ -100,7 +102,7 @@ export default function PlayingInterface() {
                         processingWave.current = false;
                     }, 3000);
                 } else {
-                    setGameWon(true);
+                    router.push('/victoryscene');
                 }
             }
         }, 50);
@@ -359,21 +361,7 @@ export default function PlayingInterface() {
                     </div>
                 </div>
 
-                {/* --- WIN OVERLAY --- */}
-                {gameWon && (
-                    <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
-                        <div className="text-center animate-bounce-short">
-                            <h1 className="text-6xl font-black text-yellow-400 drop-shadow-[0_0_15px_rgba(255,255,0,0.8)] mb-4">VICTORY!</h1>
-                            <p className="text-white text-xl">The Food is Safe.</p>
-                            <button
-                                onClick={() => window.location.reload()}
-                                className="mt-8 px-8 py-3 bg-gradient-to-r from-green-500 to-green-400 hover:from-green-400 hover:to-green-300 text-black font-bold text-lg rounded-full shadow-[0_0_20px_rgba(74,222,128,0.6)] transition-all active:scale-95"
-                            >
-                                Play Again
-                            </button>
-                        </div>
-                    </div>
-                )}
+
 
             </div>
         </div>
