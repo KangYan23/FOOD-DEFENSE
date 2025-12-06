@@ -56,7 +56,7 @@ export default function Home() {
             letter-spacing: 2px;
             transition: all 0.1s ease;
             top: 50%;
-            right: 80px;
+            right: 300px;
             transform: translateY(-50%);
             z-index: 3;
           }
