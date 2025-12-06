@@ -1,10 +1,17 @@
 export const ROWS = 5;
 export const COLS = 9;
 
+const UNIT_STATS = {
+    'sun_flower_animation.mp4': { hp: 100 },
+    'pea_shooter_animation.mp4': { hp: 150 },
+    'carrot_guardian.png': { hp: 250 }, // Tanker
+};
+
+
 export class GameManager {
     constructor() {
         this.grid = this.initializeGrid();
-        this.selectedPet = 'pet_defender';
+        this.enemies = [];
     }
 
     initializeGrid() {
@@ -18,9 +25,12 @@ export class GameManager {
             newGrid[rowIndex][colIndex] = null;
         } else {
             // Place new
+            const stats = UNIT_STATS[type] || { hp: 100 };
             newGrid[rowIndex][colIndex] = {
                 type: type,
                 id: Date.now(),
+                hp: stats.hp,
+                maxHp: stats.hp,
                 lastAttackTime: 0
             };
         }
@@ -33,8 +43,75 @@ export class GameManager {
         return newGrid;
     }
 
-    // Placeholder for future enemy logic
-    spawnEnemy() {
-        // Logic to spawn enemy
+    startWave(waveNumber) {
+        // Wave 1 -> 1 enemy, Wave 2 -> 2 enemies, etc. limit to 5 waves based on prompt context, or just generic count
+        const count = waveNumber;
+        for (let i = 0; i < count; i++) {
+            this.spawnEnemy(i * 1000); // Stagger start times slightly if needed, but here we just spawn
+        }
+    }
+
+    spawnEnemy(delayOffset = 0) {
+        // Random row
+        const row = Math.floor(Math.random() * ROWS);
+        // Start at Right edge (COLS)
+        // Add some randomness to col to separate them if multiple spawn in same wave
+        const startCol = COLS + (Math.random() * 2);
+
+        this.enemies.push({
+            id: Date.now() + Math.random(),
+            row: row,
+            col: startCol,
+            type: 'chubby_animation.mp4',
+            speed: 0.03, // Speed of movement
+            hp: 100,
+            maxHp: 100,
+            lastAttackTime: 0,
+            damage: 25 // Damage per hit
+        });
+    }
+
+    update(grid) {
+        let gridModified = false;
+        const now = Date.now();
+
+        // Move enemies
+        this.enemies.forEach(enemy => {
+            let shouldMove = true;
+
+            // Check collision with defenders if grid is provided
+            if (grid) {
+                const colIndex = Math.floor(enemy.col);
+                // Check if enemy is inside a grid cell (0 to COLS-1)
+                // And if that cell has a defender
+                if (colIndex >= 0 && colIndex < COLS && grid[enemy.row][colIndex]) {
+                    shouldMove = false;
+
+                    // Attack Logic
+                    if (now - enemy.lastAttackTime > 2000) { // Attack every 2 seconds
+                        const defender = grid[enemy.row][colIndex];
+                        defender.hp -= enemy.damage;
+                        enemy.lastAttackTime = now;
+                        gridModified = true;
+
+                        // Check if defender dead
+                        if (defender.hp <= 0) {
+                            grid[enemy.row][colIndex] = null;
+                            shouldMove = true; // Resume movement
+                        }
+                    }
+                }
+            }
+
+            if (shouldMove) {
+                enemy.col -= enemy.speed;
+            }
+        });
+
+        // Remove enemies that have passed the left edge (Game Over condition? For now just remove)
+        // keeping them a bit longer to walk off screen
+        this.enemies = this.enemies.filter(e => e.col > -2);
+
+        return { enemies: [...this.enemies], gridModified };
     }
 }

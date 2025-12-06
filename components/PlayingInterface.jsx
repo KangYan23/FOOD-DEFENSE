@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { GameManager, ROWS, COLS } from '../scripts/GameManager';
 
@@ -62,6 +62,48 @@ export default function PlayingInterface() {
     const [selectedPet, setSelectedPet] = useState(null);
     const [resources, setResources] = useState(300); // "Sun" currency
     const [isShovelActive, setIsShovelActive] = useState(false);
+    const [enemies, setEnemies] = useState([]);
+    const waveRef = useRef(1);
+    const processingWave = useRef(false);
+    const gridRef = useRef(grid);
+
+    // Sync gridRef with grid state
+    useEffect(() => {
+        gridRef.current = grid;
+    }, [grid]);
+
+    // Game Loop
+    useEffect(() => {
+        // Reset game state on mount
+        gameManager.enemies = [];
+        gameManager.startWave(1);
+        waveRef.current = 1;
+        processingWave.current = false;
+
+        const interval = setInterval(() => {
+            const { enemies: activeEnemies, gridModified } = gameManager.update(gridRef.current);
+            setEnemies(activeEnemies);
+
+            if (gridModified) {
+                setGrid([...gridRef.current]);
+            }
+
+            // Wave Logic
+            if (activeEnemies.length === 0 && !processingWave.current) {
+                if (waveRef.current < 5) {
+                    processingWave.current = true;
+                    // Delay before next wave
+                    setTimeout(() => {
+                        waveRef.current += 1;
+                        gameManager.startWave(waveRef.current);
+                        processingWave.current = false;
+                    }, 3000);
+                }
+            }
+        }, 50);
+
+        return () => clearInterval(interval);
+    }, []);
 
     // Reset grid when dimensions change
     useEffect(() => {
@@ -222,6 +264,43 @@ export default function PlayingInterface() {
                             />
                         </div>
                     </button>
+                </div>
+
+                {/* --- ENEMY OVERLAY AREA --- */}
+                <div
+                    className="absolute z-20 pointer-events-none"
+                    style={{
+                        top: '20%',
+                        bottom: '10%',
+                        left: '22%',
+                        right: '22%',
+                    }}
+                >
+                    {enemies.map(enemy => (
+                        <div
+                            key={enemy.id}
+                            className="absolute transition-all duration-75 ease-linear"
+                            style={{
+                                width: `${100 / COLS}%`,
+                                height: `${100 / ROWS}%`,
+                                top: `${enemy.row * (100 / ROWS)}%`,
+                                left: `${(enemy.col / COLS) * 100}%`,
+                            }}
+                        >
+                            <video
+                                src={`/${enemy.type}`}
+                                autoPlay
+                                muted
+                                className="w-full h-full object-contain scale-[2.5] drop-shadow-2xl"
+                                onTimeUpdate={(e) => {
+                                    if (e.target.currentTime > 2) {
+                                        e.target.currentTime = 0;
+                                        e.target.play();
+                                    }
+                                }}
+                            />
+                        </div>
+                    ))}
                 </div>
 
                 {/* --- GRID OVERLAY AREA --- */}
