@@ -6,61 +6,61 @@ let cachedVisionModel = null;
 
 // Helper: Call the REST API to list available models and find one that supports generateContent
 async function discoverVisionCapableModel() {
-  if (cachedVisionModel) {
-    return cachedVisionModel;
-  }
-
-  try {
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
-      throw new Error("GEMINI_API_KEY not configured");
+    if (cachedVisionModel) {
+        return cachedVisionModel;
     }
 
-    // Initialize Gemini AI
-    const genAI = new GoogleGenerativeAI(apiKey);
-
-    // Call Google's REST API to list models
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1/models?key=${apiKey}`);
-    
-    if (!response.ok) {
-      throw new Error(`ListModels API failed: ${response.status} ${response.statusText}`);
-    }
-
-    const data = await response.json();
-    console.log('Available models:', JSON.stringify(data, null, 2));
-
-    if (data.models && Array.isArray(data.models)) {
-      // Look for models that support generateContent
-      for (const model of data.models) {
-        const modelName = model.name;
-        const supportedMethods = model.supportedGenerationMethods || [];
-        
-        console.log(`Model: ${modelName}, Methods: ${supportedMethods.join(', ')}`);
-        
-        // Check if this model supports generateContent
-        if (supportedMethods.includes('generateContent')) {
-          try {
-            // Extract just the model ID from the full name (e.g., "models/gemini-pro" -> "gemini-pro")
-            const modelId = modelName.replace('models/', '');
-            console.log(`Trying to use model: ${modelId}`);
-            
-            const testModel = genAI.getGenerativeModel({ model: modelId });
-            cachedVisionModel = testModel;
-            console.log(`Successfully selected model: ${modelId}`);
-            return testModel;
-          } catch (e) {
-            console.warn(`Failed to create model ${modelName}:`, e);
-            continue;
-          }
+    try {
+        const apiKey = process.env.GEMINI_API_KEY;
+        if (!apiKey) {
+            throw new Error("GEMINI_API_KEY not configured");
         }
-      }
-    }
 
-    throw new Error("No models found that support generateContent in your region");
-  } catch (error) {
-    console.error("Error discovering vision-capable model:", error);
-    throw error;
-  }
+        // Initialize Gemini AI
+        const genAI = new GoogleGenerativeAI(apiKey);
+
+        // Call Google's REST API to list models
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1/models?key=${apiKey}`);
+
+        if (!response.ok) {
+            throw new Error(`ListModels API failed: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        console.log('Available models:', JSON.stringify(data, null, 2));
+
+        if (data.models && Array.isArray(data.models)) {
+            // Look for models that support generateContent
+            for (const model of data.models) {
+                const modelName = model.name;
+                const supportedMethods = model.supportedGenerationMethods || [];
+
+                console.log(`Model: ${modelName}, Methods: ${supportedMethods.join(', ')}`);
+
+                // Check if this model supports generateContent
+                if (supportedMethods.includes('generateContent')) {
+                    try {
+                        // Extract just the model ID from the full name (e.g., "models/gemini-pro" -> "gemini-pro")
+                        const modelId = modelName.replace('models/', '');
+                        console.log(`Trying to use model: ${modelId}`);
+
+                        const testModel = genAI.getGenerativeModel({ model: modelId });
+                        cachedVisionModel = testModel;
+                        console.log(`Successfully selected model: ${modelId}`);
+                        return testModel;
+                    } catch (e) {
+                        console.warn(`Failed to create model ${modelName}:`, e);
+                        continue;
+                    }
+                }
+            }
+        }
+
+        throw new Error("No models found that support generateContent in your region");
+    } catch (error) {
+        console.error("Error discovering vision-capable model:", error);
+        throw error;
+    }
 }
 
 export default async function handler(req, res) {
@@ -78,9 +78,9 @@ export default async function handler(req, res) {
         // Check if API key exists
         if (!process.env.GEMINI_API_KEY) {
             console.error('GEMINI_API_KEY not found in environment variables');
-            return res.status(401).json({ 
+            return res.status(401).json({
                 error: 'API configuration error',
-                details: 'GEMINI_API_KEY is not configured' 
+                details: 'GEMINI_API_KEY is not configured'
             });
         }
 
@@ -115,16 +115,16 @@ export default async function handler(req, res) {
 
         // Convert base64 to image buffer for Gemini
         const imageBuffer = Buffer.from(image.split(',')[1], 'base64');
-        
+
         // Extract MIME type from data URL
         const mimeTypeMatch = image.match(/data:([^;]+);/);
         const mimeType = mimeTypeMatch ? mimeTypeMatch[1] : 'image/jpeg';
 
         console.log("Calling Gemini API with discovered model...");
-        
+
         // Generate content with image and prompt
         let analysisData;
-        
+
         try {
             const result = await model.generateContent([
                 prompt,
@@ -138,23 +138,23 @@ export default async function handler(req, res) {
 
             const response = await result.response;
             const text = response.text();
-            
+
             console.log("Raw Gemini response:", text);
 
             // Parse the JSON response
             try {
                 // Clean up the response to extract JSON
                 let jsonText = text.trim();
-                
+
                 // Remove any markdown formatting if present
                 if (jsonText.startsWith('```json')) {
                     jsonText = jsonText.replace(/```json\n?/, '').replace(/```\n?$/, '');
                 } else if (jsonText.startsWith('```')) {
                     jsonText = jsonText.replace(/```\n?/, '').replace(/```\n?$/, '');
                 }
-                
+
                 analysisData = JSON.parse(jsonText);
-                
+
                 // Ensure nutrition values are numbers
                 if (analysisData.nutrition) {
                     analysisData.nutrition.carbohydrates = Number(analysisData.nutrition.carbohydrates) || 0;
@@ -168,7 +168,7 @@ export default async function handler(req, res) {
             }
         } catch (aiError) {
             console.error('Gemini API Error:', aiError);
-            
+
             // For demo purposes, provide a mock analysis with realistic nutritional data
             const mockFoods = [
                 {
@@ -208,7 +208,7 @@ export default async function handler(req, res) {
                     nutrition: { carbohydrates: 0, protein: 31, fiber: 0, fat: 3.6 }
                 }
             ];
-            
+
             // Return a random mock food for demonstration
             analysisData = mockFoods[Math.floor(Math.random() * mockFoods.length)];
             console.log('Using mock data due to API issues:', analysisData);
@@ -218,7 +218,7 @@ export default async function handler(req, res) {
         return res.status(200).json(analysisData);
     } catch (error) {
         console.error('Error analyzing food:', error);
-        
+
         // Provide more specific error information for debugging
         if (error instanceof Error) {
             // Check for specific API errors
@@ -239,7 +239,7 @@ export default async function handler(req, res) {
                 });
             }
         }
-        
+
         return res.status(500).json({
             error: 'Failed to analyze food',
             details: error.message,
