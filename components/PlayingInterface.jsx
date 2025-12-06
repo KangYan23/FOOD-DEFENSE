@@ -4,6 +4,66 @@ import { GameManager, ROWS, COLS } from '../scripts/GameManager';
 
 const gameManager = new GameManager();
 
+const SELECTION_ITEMS = [
+    { type: 'sun_flower.png', cost: 50, label: 'Sunflower' },
+    { type: 'pea_shooter.png', cost: 100, label: 'Pea Shooter' },
+    { type: 'carrot_guardian.png', cost: 100, label: 'Carrot Guardian' },
+];
+
+const Unit = ({ type, onResourceGen }) => {
+    useEffect(() => {
+        let interval;
+        if (type.includes('sun_flower')) {
+            // Generate sun every 5 seconds for static images
+            // Or use animation loop if it was a video, but now we use PNG.
+            interval = setInterval(() => {
+                onResourceGen(50);
+            }, 5000);
+        }
+        return () => {
+            if (interval) clearInterval(interval);
+        };
+    }, [type, onResourceGen]);
+
+    // Render logic
+    const isVideo = type.endsWith('.mp4');
+
+    return (
+        <div className="relative w-[90%] h-[90%] animate-bounce-short">
+            {isVideo ? (
+                <video
+                    src={`/${type}`}
+                    autoPlay
+                    loop={!type.includes('sun_flower')} // Keep potential video logic if mixed types exist
+                    playsInline
+                    className="w-full h-full object-contain drop-shadow-2xl"
+                    onEnded={(e) => {
+                        // Fallback for video-based sun generation if somehow still used
+                        if (type.includes('sun_flower')) {
+                            // Managed by interval now to support PNG, but could double dip if not careful.
+                            // Since we are moving to PNG, this might not be reached. 
+                            // If the user reverts to video, we might want to suppress this or handle it.
+                            // For now, removing the side-effect here to rely on the interval for consistency 
+                            // OR strictly relying on this for video.
+                            // But let's assume we stick to the interval for the logic.
+                            e.target.currentTime = 0;
+                            e.target.play();
+                        }
+                    }}
+                />
+            ) : (
+                <Image
+                    src={`/${type}`}
+                    alt="Defender"
+                    fill
+                    className="object-contain drop-shadow-2xl"
+                    sizes="10vw"
+                />
+            )}
+        </div>
+    );
+};
+
 export default function PlayingInterface() {
     // Initialize grid state
     const [grid, setGrid] = useState(Array(ROWS).fill(null).map(() => Array(COLS).fill(null)));
@@ -16,7 +76,7 @@ export default function PlayingInterface() {
         if (grid.length !== ROWS || (grid[0] && grid[0].length !== COLS)) {
             setGrid(Array(ROWS).fill(null).map(() => Array(COLS).fill(null)));
         }
-    });
+    }, [grid]);
 
     // Drag and Drop Logic
     const handleDragStart = (e, petType, cost) => {
@@ -51,9 +111,13 @@ export default function PlayingInterface() {
                 setGrid(prevGrid => gameManager.removeDefender(prevGrid, rowIndex, colIndex));
                 setIsShovelActive(false); // Deactivate shovel after use
             }
-        } else if (selectedPet && !grid[rowIndex][colIndex] && resources >= 100) {
-            placeUnit(rowIndex, colIndex, selectedPet, 100);
-            setSelectedPet(null); // Deselect after placement
+        } else if (selectedPet) {
+            // Find cost of selected pet
+            const item = SELECTION_ITEMS.find(i => i.type === selectedPet);
+            if (item && !grid[rowIndex][colIndex] && resources >= item.cost) {
+                placeUnit(rowIndex, colIndex, selectedPet, item.cost);
+                setSelectedPet(null); // Deselect after placement
+            }
         }
     };
 
@@ -65,6 +129,10 @@ export default function PlayingInterface() {
     const placeUnit = (rowIndex, colIndex, type, cost) => {
         setGrid(prevGrid => gameManager.placeDefender(prevGrid, rowIndex, colIndex, type));
         setResources(prev => prev - cost);
+    };
+
+    const handleResourceGen = (amount) => {
+        setResources(prev => prev + amount);
     };
 
     return (
@@ -84,62 +152,35 @@ export default function PlayingInterface() {
                 {/* --- TOP BAR --- */}
                 <div className="absolute top-0 left-0 w-full h-[15%] z-50 flex items-center justify-center pointer-events-none">
                     <div className="bg-black/60 backdrop-blur-md border border-white/20 rounded-xl px-6 py-2 flex gap-4 pointer-events-auto">
-                        {/* Draggable Carrot Unit */}
-                        <div
-                            draggable="true"
-                            onDragStart={(e) => handleDragStart(e, 'carrot.jpg', 100)}
-                            className="w-16 h-16 relative bg-white/10 rounded-lg border border-white/30 cursor-grab active:cursor-grabbing hover:bg-white/20 transition-all hover:scale-105 group overflow-hidden"
-                            title="Carrot (100)"
-                        >
-                            <Image
-                                src="/carrot.jpg"
-                                alt="Carrot Defender"
-                                fill
-                                className="object-cover group-hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]"
-                                sizes="64px"
-                            />
-                            <div className="absolute -bottom-1 -right-1 bg-yellow-500 text-black text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center border border-white z-10">
-                                100
-                            </div>
-                        </div>
 
-                        {/* Draggable Sunflower Unit */}
-                        <div
-                            draggable="true"
-                            onDragStart={(e) => handleDragStart(e, 'sun_flower_animation.mp4', 50)}
-                            className="w-16 h-16 relative bg-white/10 rounded-lg border border-white/30 cursor-grab active:cursor-grabbing hover:bg-white/20 transition-all hover:scale-105 group overflow-hidden"
-                            title="Sunflower (50)"
-                        >
-                            <video
-                                src="/sun_flower_animation.mp4"
-                                autoPlay
-                                loop
-                                playsInline
-                                className="w-full h-full object-cover group-hover:brightness-110"
-                            />
-                            <div className="absolute -bottom-1 -right-1 bg-yellow-500 text-black text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center border border-white z-10">
-                                50
+                        {SELECTION_ITEMS.map((item) => (
+                            <div
+                                key={item.type}
+                                draggable="true"
+                                onDragStart={(e) => handleDragStart(e, item.type, item.cost)}
+                                onClick={() => {
+                                    if (resources >= item.cost) setSelectedPet(item.type);
+                                }}
+                                className={`w-16 h-16 relative bg-white/10 rounded-lg border 
+                                    ${selectedPet === item.type ? 'border-yellow-400 bg-white/30' : 'border-white/30'} 
+                                    cursor-grab active:cursor-grabbing hover:bg-white/20 transition-all hover:scale-105 group overflow-hidden`}
+                                title={`${item.label} (${item.cost})`}
+                            >
+                                <div className="relative w-full h-full">
+                                    <Image
+                                        src={`/${item.type}`}
+                                        alt={item.label}
+                                        fill
+                                        className="object-cover group-hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]"
+                                        sizes="64px"
+                                    />
+                                </div>
+                                <div className="absolute -bottom-1 -right-1 bg-yellow-500 text-black text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center border border-white z-10">
+                                    {item.cost}
+                                </div>
                             </div>
-                        </div>
+                        ))}
 
-                        {/* Draggable Corn Gunner Unit */}
-                        <div
-                            draggable="true"
-                            onDragStart={(e) => handleDragStart(e, 'corn_gunner_animation.mp4', 150)}
-                            className="w-16 h-16 relative bg-white/10 rounded-lg border border-white/30 cursor-grab active:cursor-grabbing hover:bg-white/20 transition-all hover:scale-105 group overflow-hidden"
-                            title="Corn Gunner (150)"
-                        >
-                            <video
-                                src="/corn_gunner_animation.mp4"
-                                autoPlay
-                                loop
-                                playsInline
-                                className="w-full h-full object-cover group-hover:brightness-110"
-                            />
-                            <div className="absolute -bottom-1 -right-1 bg-yellow-500 text-black text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center border border-white z-10">
-                                150
-                            </div>
-                        </div>
                     </div>
                 </div>
 
@@ -213,33 +254,7 @@ export default function PlayingInterface() {
                                             <div
                                                 className="relative w-full h-full flex items-center justify-center pointer-events-none z-10"
                                             >
-                                                {/* Simple scaling/positioning for 2D view */}
-                                                <div className="relative w-[90%] h-[90%] animate-bounce-short">
-                                                    {cell.type.endsWith('.mp4') ? (
-                                                        <video
-                                                            src={`/${cell.type}`}
-                                                            autoPlay
-                                                            loop={!cell.type.includes('sun_flower')} // Manual loop for sunflower to track cycles
-                                                            playsInline
-                                                            className="w-full h-full object-contain drop-shadow-2xl"
-                                                            onEnded={(e) => {
-                                                                if (cell.type.includes('sun_flower')) {
-                                                                    setResources(prev => prev + 50);
-                                                                    e.target.currentTime = 0;
-                                                                    e.target.play();
-                                                                }
-                                                            }}
-                                                        />
-                                                    ) : (
-                                                        <Image
-                                                            src={cell.type.includes('.') ? `/${cell.type}` : `/${cell.type}.png`}
-                                                            alt="Defender"
-                                                            fill
-                                                            className="object-contain drop-shadow-2xl"
-                                                            sizes="10vw"
-                                                        />
-                                                    )}
-                                                </div>
+                                                <Unit type={cell.type} onResourceGen={handleResourceGen} />
                                             </div>
                                         )}
                                     </div>
