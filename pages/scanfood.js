@@ -106,8 +106,8 @@ export default function ScanFood() {
   };
 
   const handleNextClick = () => {
-    // Navigate to battle scene
-    router.push('/battlescene');
+    // Navigate to level 1
+    router.push('/level1');
   };
 
   useEffect(() => {
