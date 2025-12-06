@@ -4,24 +4,9 @@ import Head from 'next/head';
 
 export default function Home() {
   const router = useRouter();
-  const audioRef = useRef(null);
-
-  // Background Music
-  useEffect(() => {
-    if (audioRef.current) {
-      audioRef.current.volume = 0.3;
-      audioRef.current.play().catch(err => {
-        console.log('Audio autoplay prevented:', err);
-      });
-    }
-
-    return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.currentTime = 0;
-      }
-    };
-  }, []);
+  const handleStart = () => {
+    router.push('/scanfood');
+  };
 
   return (
     <>
@@ -30,18 +15,16 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0" />
       </Head>
       <div className="main-container">
-        {/* Background Music */}
-        <audio
-          ref={audioRef}
-          src="/POL-pet-park-short.wav"
-          loop
-          preload="auto"
-        />
 
-        <img className="title-image" src="/title2.png" alt="Title" />
-        <button className="start-button" onClick={() => router.push('/scanfood')}>
-          START
-        </button>
+        <div className="menu-container">
+          <img className="title-image" src="/title2.png" alt="Title" />
+          <button className="menu-button" onClick={handleStart}>
+            START
+          </button>
+          <button className="menu-button">
+            SETTINGS
+          </button>
+        </div>
 
         <style jsx>{`
           .main-container {
@@ -58,21 +41,44 @@ export default function Home() {
             overflow: hidden;
           }
 
-          .title-image {
+          .menu-container {
             position: absolute;
-            top: 200px;
-            right: 60px;
-            max-width: 35%;
+            right: 5%;
+            top: 20%;
+            width: 40%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2rem;
+            z-index: 10;
+          }
+
+          .title-image {
+            width: 100%;
+            height: auto;
+            object-fit: contain;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5));
+          }
+
+          /* For loading screen title */
+          .title-image-loading { 
+            position: absolute;
+            top: 50px;
+            right: 50px;
+            width: 300px;
             height: auto;
             z-index: 2;
           }
 
-          .start-button {
-            position: absolute;
+          .menu-button {
+            /* Relative to flex container */
             background: linear-gradient(145deg, #d2a679, #b8935f);
             border: 3px solid #8b4513;
             border-radius: 15px;
-            padding: 12px 32px;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             font-size: 28px;
             font-weight: bold;
             color: white;
@@ -82,15 +88,28 @@ export default function Home() {
             font-family: Arial, sans-serif;
             letter-spacing: 2px;
             transition: all 0.1s ease;
-            top: 50%;
-            right: 300px;
-            transform: translateY(-50%);
-            z-index: 3;
+            width: 50%; /* Reduced width */
+            max-width: 220px;
           }
 
-          .start-button:active {
-            transform: translateY(-47px);
+          .menu-button:active {
+            transform: translateY(3px);
             box-shadow: 0 3px 0 #8b4513, 0 5px 10px rgba(0,0,0,0.4);
+          }
+
+          .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85); /* Dark overlay */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            backdrop-filter: blur(5px);
           }
 
           /* Mobile Responsive */
@@ -108,17 +127,14 @@ export default function Home() {
               max-width: 80%;
             }
 
-            .start-button {
-              top: 70%;
-              left: 50%;
-              right: auto;
-              transform: translate(-50%, -50%);
+            .menu-button {
+              /* Remove absolute positioning logic if any remained, handled by flex & margins now */
               font-size: 24px;
               padding: 10px 28px;
             }
 
-            .start-button:active {
-              transform: translate(-50%, -47px);
+            .menu-button:active {
+               /* Handled by main class */
             }
           }
 
@@ -128,10 +144,9 @@ export default function Home() {
               top: 15%;
             }
 
-            .start-button {
+            .menu-button {
               font-size: 20px;
               padding: 8px 24px;
-              top: 75%;
             }
           }
         `}</style>
