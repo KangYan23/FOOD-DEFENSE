@@ -6,7 +6,7 @@ const gameManager = new GameManager();
 
 const SELECTION_ITEMS = [
     { type: 'sun_flower_animation.mp4', cost: 50, label: 'Sunflower' },
-    { type: 'pea_shooter.png', cost: 100, label: 'Pea Shooter' },
+    { type: 'pea_shooter_animation.mp4', cost: 100, label: 'Pea Shooter' },
     { type: 'carrot_guardian.png', cost: 100, label: 'Carrot Guardian' },
 ];
 
@@ -191,8 +191,13 @@ export default function PlayingInterface() {
                 <div className="absolute bottom-4 left-4 z-50 flex items-center gap-4 pointer-events-auto">
                     {/* Coin Display */}
                     <div className="flex items-center gap-3 bg-black/60 backdrop-blur-md px-5 py-3 rounded-full border border-yellow-500/30 shadow-lg pointer-events-none">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-600 border-2 border-white/80 flex items-center justify-center text-black font-extrabold text-lg shadow-[0_0_15px_rgba(234,179,8,0.6)] animate-pulse-slow">
-                            $
+                        <div className="w-10 h-10 relative animate-pulse-slow">
+                            <Image
+                                src="/sun_energy.png"
+                                alt="Sun Currency"
+                                fill
+                                className="object-contain drop-shadow-[0_0_8px_rgba(255,255,0,0.8)]"
+                            />
                         </div>
                         <span className="text-yellow-300 font-mono font-bold text-2xl drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)] tracking-wider">
                             {resources}
@@ -208,15 +213,14 @@ export default function PlayingInterface() {
                             }`}
                         title="Shovel - Remove Plant"
                     >
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 24 24"
-                            fill="currentColor"
-                            className={`w-8 h-8 transition-colors ${isShovelActive ? 'text-white' : 'text-gray-300'}`}
-                        >
-                            <path d="M13.73 3.51a.75.75 0 00-1.06 0L5.47 10.71a.75.75 0 000 1.06l1.27 1.27c.3.3.78.3 1.06 0l2.42-2.42 2.65 2.65-2.42 2.42c-.3.3-.3.78 0 1.06l1.27 1.27c.3.3.78.3 1.06 0l7.2-7.2a.75.75 0 000-1.06l-1.27-1.27a.75.75 0 00-1.06 0l-1.27 1.27-2.65-2.65 1.27-1.27a.75.75 0 000-1.06L13.73 3.51z" />
-                            <path d="M7.78 18.22a.75.75 0 00-1.06 0L2.22 22.72a.75.75 0 101.06 1.06l4.5-4.5a.75.75 0 000-1.06z" />
-                        </svg>
+                        <div className="w-10 h-10 relative">
+                            <Image
+                                src="/shovel.png"
+                                alt="Shovel"
+                                fill
+                                className={`object-contain transition-all ${isShovelActive ? 'brightness-200 drop-shadow-[0_0_5px_rgba(255,255,255,0.8)]' : ''}`}
+                            />
+                        </div>
                     </button>
                 </div>
 
