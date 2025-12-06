@@ -1,7 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
+import { useRouter } from 'next/router';
 import Head from 'next/head';
 
 export default function ScanFood() {
+  const router = useRouter();
   const [cameraActive, setCameraActive] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
   const [result, setResult] = useState(null);
@@ -104,11 +106,8 @@ export default function ScanFood() {
   };
 
   const handleNextClick = () => {
-    setShowEnvelope(false);
-    setEnvelopeOpen(false);
-    setResult(null);
-    setError(null);
-    startCamera();
+    // Navigate to battle scene
+    router.push('/battlescene');
   };
 
   useEffect(() => {
