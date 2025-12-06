@@ -8,7 +8,7 @@ const gameManager = new GameManager();
 const SELECTION_ITEMS = [
     { type: 'sun_flower_animation.mp4', cost: 50, label: 'Sunflower' },
     { type: 'pea_shooter_animation.mp4', cost: 100, label: 'Pea Shooter' },
-    { type: 'carrot_guardian.png', cost: 100, label: 'Carrot Guardian' },
+    { type: 'carrot_guardian_animation.mp4', cost: 100, label: 'Carrot Guardian' },
 ];
 
 const Unit = ({ type, onResourceGen }) => {
