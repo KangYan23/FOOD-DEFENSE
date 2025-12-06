@@ -1,21 +1,119 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { GameManager, ROWS, COLS } from '../scripts/GameManager';
 
 const gameManager = new GameManager();
 
+const SELECTION_ITEMS = [
+    { type: 'sun_flower_animation.mp4', cost: 50, label: 'Sunflower' },
+    { type: 'pea_shooter_animation.mp4', cost: 100, label: 'Pea Shooter' },
+    { type: 'carrot_guardian.png', cost: 100, label: 'Carrot Guardian' },
+];
+
+const Unit = ({ type, onResourceGen }) => {
+    const isVideo = type.endsWith('.mp4');
+
+    useEffect(() => {
+        let interval;
+        // Only use interval for non-video sunflowers (static images)
+        if (type.includes('sun_flower') && !isVideo) {
+            interval = setInterval(() => {
+                onResourceGen(50);
+            }, 5000);
+        }
+        return () => {
+            if (interval) clearInterval(interval);
+        };
+    }, [type, onResourceGen, isVideo]);
+
+    return (
+        <div className="relative w-full h-full animate-bounce-short">
+            {isVideo ? (
+                <video
+                    src={`/${type}`}
+                    autoPlay
+                    loop={!type.includes('sun_flower')} // Manual loop for sunflower to track cycles
+                    playsInline
+                    className="w-full h-full object-contain drop-shadow-2xl scale-[2.5]"
+                    onEnded={(e) => {
+                        if (type.includes('sun_flower')) {
+                            onResourceGen(50);
+                            e.target.currentTime = 0;
+                            e.target.play();
+                        }
+                    }}
+                />
+            ) : (
+                <Image
+                    src={`/${type}`}
+                    alt="Defender"
+                    fill
+                    className="object-contain drop-shadow-2xl"
+                    sizes="10vw"
+                />
+            )}
+        </div>
+    );
+};
+
 export default function PlayingInterface() {
     // Initialize grid state
     const [grid, setGrid] = useState(Array(ROWS).fill(null).map(() => Array(COLS).fill(null)));
     const [selectedPet, setSelectedPet] = useState(null);
-    const [resources, setResources] = useState(500); // "Sun" currency
+    const [resources, setResources] = useState(300); // "Sun" currency
+    const [isShovelActive, setIsShovelActive] = useState(false);
+    const [enemies, setEnemies] = useState([]);
+    const [gameWon, setGameWon] = useState(false);
+    const waveRef = useRef(1);
+    const processingWave = useRef(false);
+    const gridRef = useRef(grid);
+
+    // Sync gridRef with grid state
+    useEffect(() => {
+        gridRef.current = grid;
+    }, [grid]);
+
+    // Game Loop
+    useEffect(() => {
+        // Reset game state on mount
+        gameManager.enemies = [];
+        gameManager.startWave(1);
+        waveRef.current = 1;
+        processingWave.current = false;
+
+        const interval = setInterval(() => {
+            const { enemies: activeEnemies, gridModified } = gameManager.update(gridRef.current);
+            setEnemies(activeEnemies);
+
+            if (gridModified) {
+                setGrid([...gridRef.current]);
+            }
+
+            // Wave Logic
+            if (activeEnemies.length === 0 && !processingWave.current) {
+                if (waveRef.current < 3) {
+                    processingWave.current = true;
+                    // Delay before next wave
+                    setTimeout(() => {
+                        waveRef.current += 1;
+                        gameManager.startWave(waveRef.current);
+                        processingWave.current = false;
+                    }, 3000);
+                } else {
+                    setGameWon(true);
+                }
+            }
+        }, 50);
+
+        return () => clearInterval(interval);
+    }, []);
 
     // Reset grid when dimensions change
     useEffect(() => {
         if (grid.length !== ROWS || (grid[0] && grid[0].length !== COLS)) {
             setGrid(Array(ROWS).fill(null).map(() => Array(COLS).fill(null)));
         }
-    });
+    }, [grid]);
 
     // Drag and Drop Logic
     const handleDragStart = (e, petType, cost) => {
@@ -45,15 +143,33 @@ export default function PlayingInterface() {
     };
 
     const handleCellClick = (rowIndex, colIndex) => {
-        if (selectedPet && !grid[rowIndex][colIndex] && resources >= 100) {
-            placeUnit(rowIndex, colIndex, selectedPet, 100);
-            setSelectedPet(null); // Deselect after placement
+        if (isShovelActive) {
+            if (grid[rowIndex][colIndex]) {
+                setGrid(prevGrid => gameManager.removeDefender(prevGrid, rowIndex, colIndex));
+                setIsShovelActive(false); // Deactivate shovel after use
+            }
+        } else if (selectedPet) {
+            // Find cost of selected pet
+            const item = SELECTION_ITEMS.find(i => i.type === selectedPet);
+            if (item && !grid[rowIndex][colIndex] && resources >= item.cost) {
+                placeUnit(rowIndex, colIndex, selectedPet, item.cost);
+                setSelectedPet(null); // Deselect after placement
+            }
         }
+    };
+
+    const toggleShovel = () => {
+        setIsShovelActive(!isShovelActive);
+        setSelectedPet(null); // Clear any selected pet
     };
 
     const placeUnit = (rowIndex, colIndex, type, cost) => {
         setGrid(prevGrid => gameManager.placeDefender(prevGrid, rowIndex, colIndex, type));
         setResources(prev => prev - cost);
+    };
+
+    const handleResourceGen = (amount) => {
+        setResources(prev => prev + amount);
     };
 
     return (
@@ -70,19 +186,141 @@ export default function PlayingInterface() {
                     backgroundRepeat: 'no-repeat',
                 }}
             >
-                {/* --- TOP BAR REMOVED AS REQUESTED --- */}
+                {/* --- TOP BAR --- */}
+                <div className="absolute top-0 left-0 w-full h-[15%] z-50 flex items-center justify-center pointer-events-none">
+                    <div className="bg-black/60 backdrop-blur-md border border-white/20 rounded-xl px-6 py-2 flex gap-4 pointer-events-auto">
+
+                        {SELECTION_ITEMS.map((item) => (
+                            <div
+                                key={item.type}
+                                draggable="true"
+                                onDragStart={(e) => handleDragStart(e, item.type, item.cost)}
+                                onClick={() => {
+                                    if (resources >= item.cost) setSelectedPet(item.type);
+                                }}
+                                className={`w-16 h-16 relative bg-white/10 rounded-lg border 
+                                    ${selectedPet === item.type ? 'border-yellow-400 bg-white/30' : 'border-white/30'} 
+                                    cursor-grab active:cursor-grabbing hover:bg-white/20 transition-all hover:scale-105 group overflow-hidden`}
+                                title={`${item.label} (${item.cost})`}
+                            >
+                                <div className="relative w-full h-full">
+                                    {item.type.endsWith('.mp4') ? (
+                                        <video
+                                            src={`/${item.type}`}
+                                            autoPlay
+                                            loop
+                                            muted
+                                            playsInline
+                                            className="w-full h-full object-cover group-hover:brightness-110"
+                                        />
+                                    ) : (
+                                        <Image
+                                            src={`/${item.type}`}
+                                            alt={item.label}
+                                            fill
+                                            className="object-cover group-hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]"
+                                            sizes="64px"
+                                        />
+                                    )}
+                                </div>
+                                <div className="absolute -bottom-1 -right-1 bg-yellow-500 text-black text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center border border-white z-10">
+                                    {item.cost}
+                                </div>
+                            </div>
+                        ))}
+
+                    </div>
+                </div>
+
+                {/* --- COIN DISPLAY --- */}
+                <div className="absolute bottom-4 left-4 z-50 flex items-center gap-4 pointer-events-auto">
+                    {/* Coin Display */}
+                    <div className="flex items-center gap-3 bg-black/60 backdrop-blur-md px-5 py-3 rounded-full border border-yellow-500/30 shadow-lg pointer-events-none">
+                        <div className="w-10 h-10 relative animate-pulse-slow">
+                            <Image
+                                src="/sun_energy.png"
+                                alt="Sun Currency"
+                                fill
+                                className="object-contain drop-shadow-[0_0_8px_rgba(255,255,0,0.8)]"
+                            />
+                        </div>
+                        <span className="text-yellow-300 font-mono font-bold text-2xl drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)] tracking-wider">
+                            {resources}
+                        </span>
+                    </div>
+
+                    {/* Shovel Button */}
+                    <button
+                        onClick={toggleShovel}
+                        className={`w-16 h-16 rounded-full border-2 flex items-center justify-center transition-all duration-200 shadow-lg ${isShovelActive
+                            ? 'bg-red-500/80 border-white scale-110 shadow-[0_0_20px_rgba(239,68,68,0.6)]'
+                            : 'bg-black/60 border-white/30 hover:bg-white/10 hover:border-white/60'
+                            }`}
+                        title="Shovel - Remove Plant"
+                    >
+                        <div className="w-10 h-10 relative">
+                            <Image
+                                src="/shovel.png"
+                                alt="Shovel"
+                                fill
+                                className={`object-contain transition-all ${isShovelActive ? 'brightness-200 drop-shadow-[0_0_5px_rgba(255,255,255,0.8)]' : ''}`}
+                            />
+                        </div>
+                    </button>
+                </div>
+
+                {/* --- ENEMY OVERLAY AREA --- */}
+                <div
+                    className="absolute z-20 pointer-events-none"
+                    style={{
+                        top: '20%',
+                        bottom: '10%',
+                        left: '22%',
+                        right: '22%',
+                    }}
+                >
+                    {enemies.map(enemy => (
+                        <div
+                            key={enemy.id}
+                            className="absolute transition-all duration-75 ease-linear"
+                            style={{
+                                width: `${100 / COLS}%`,
+                                height: `${100 / ROWS}%`,
+                                top: `${enemy.row * (100 / ROWS)}%`,
+                                left: `${(enemy.col / COLS) * 100}%`,
+                            }}
+                        >
+                            <div className="absolute -top-2 left-0 w-full h-1 bg-red-500 rounded-full overflow-hidden border border-black/50">
+                                <div
+                                    className="h-full bg-green-500 transition-all duration-200"
+                                    style={{ width: `${(enemy.hp / enemy.maxHp) * 100}%` }}
+                                />
+                            </div>
+                            <video
+                                src={`/${enemy.type}`}
+                                autoPlay
+                                muted
+                                className="w-full h-full object-contain scale-[2.5] drop-shadow-2xl"
+                                onTimeUpdate={(e) => {
+                                    if (e.target.currentTime > 2) {
+                                        e.target.currentTime = 0;
+                                        e.target.play();
+                                    }
+                                }}
+                            />
+                        </div>
+                    ))}
+                </div>
 
                 {/* --- GRID OVERLAY AREA --- */}
                 <div
                     className="absolute z-10"
                     style={{
-                        top: '25%',
+                        top: '20%',    // Push down more to avoid overlap
                         bottom: '10%',
-                        left: '28%',
-                        right: '28%',
-                        transform: 'perspective(600px) rotateX(30deg)',
-                        transformOrigin: 'bottom center',
-                        transformStyle: 'preserve-3d'
+                        left: '22%',   // Increase side margins to avoid house/cave
+                        right: '22%',
+                        // Removed 3D transforms to make it flat "in front of us"
                     }}
                 >
                     <div
@@ -101,24 +339,17 @@ export default function PlayingInterface() {
                                         onDragOver={handleDragOver}
                                         onDrop={(e) => handleDrop(e, rowIndex, colIndex)}
                                         className={`
-                                            relative w-full h-full border border-white/30
-                                            ${cell ? '' : 'hover:bg-white/10 hover:border-white/60'} 
+                                            relative w-full h-full border border-white/5
+                                            ${cell ? '' : 'hover:bg-white/10 hover:border-white/40'} 
                                             transition-all duration-200 cursor-pointer
                                         `}
                                     >
                                         {/* Placed Unit */}
                                         {cell && (
-                                            <div className="relative w-full h-full flex items-center justify-center pointer-events-none z-10" style={{ transform: 'rotateX(-20deg) translateY(-20%)' }}>
-                                                <div className="absolute bottom-[0%] w-[60%] h-[15%] bg-black/40 rounded-[100%] blur-[4px]"></div>
-                                                <div className="relative w-[100%] h-[120%] animate-bounce-short">
-                                                    <Image
-                                                        src={`/${cell.type}.png`}
-                                                        alt="Defender"
-                                                        fill
-                                                        className="object-contain drop-shadow-2xl"
-                                                        sizes="10vw"
-                                                    />
-                                                </div>
+                                            <div
+                                                className="relative w-full h-full flex items-center justify-center pointer-events-none z-10"
+                                            >
+                                                <Unit type={cell.type} onResourceGen={handleResourceGen} />
                                             </div>
                                         )}
                                     </div>
@@ -127,6 +358,22 @@ export default function PlayingInterface() {
                         ))}
                     </div>
                 </div>
+
+                {/* --- WIN OVERLAY --- */}
+                {gameWon && (
+                    <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+                        <div className="text-center animate-bounce-short">
+                            <h1 className="text-6xl font-black text-yellow-400 drop-shadow-[0_0_15px_rgba(255,255,0,0.8)] mb-4">VICTORY!</h1>
+                            <p className="text-white text-xl">The Food is Safe.</p>
+                            <button
+                                onClick={() => window.location.reload()}
+                                className="mt-8 px-8 py-3 bg-gradient-to-r from-green-500 to-green-400 hover:from-green-400 hover:to-green-300 text-black font-bold text-lg rounded-full shadow-[0_0_20px_rgba(74,222,128,0.6)] transition-all active:scale-95"
+                            >
+                                Play Again
+                            </button>
+                        </div>
+                    </div>
+                )}
 
             </div>
         </div>
