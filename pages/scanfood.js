@@ -285,9 +285,21 @@ export default function ScanFood() {
 
             {showEnvelope && (
               <div className="envelope-container">
+                {envelopeOpen && (
+                  <div className="congratulations-message">
+                    <h2>Congratulations!</h2>
+                    <p>You get the strongest plant.</p>
+                  </div>
+                )}
                 <div className={`envelope ${envelopeOpen ? 'open' : ''}`}>
                   <div className="envelope-back"></div>
                   <div className="envelope-flap"></div>
+                  {envelopeOpen && (
+                    <div className="golden-flash-container">
+                      <div className="golden-flash"></div>
+                      <div className="radiant-glow"></div>
+                    </div>
+                  )}
                   <div className="photos-container">
                     <div className="photo photo-1">
                       <img src="/chris.jpg" alt="Chris" />
@@ -705,6 +717,58 @@ export default function ScanFood() {
             text-shadow: 0 10px 20px rgba(0,0,0,0.2);
           }
 
+          /* Congratulations Message */
+          .congratulations-message {
+            position: absolute;
+            top: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            z-index: 15;
+            animation: fadeInUp 0.8s ease-out;
+          }
+
+          .congratulations-message h2 {
+            font-family: 'Titan One', cursive;
+            font-size: 36px;
+            color: #ff9800;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.8);
+            margin: 0 0 8px 0;
+            animation: bounce 2s infinite;
+          }
+
+          .congratulations-message p {
+            font-family: 'Nunito', sans-serif;
+            font-size: 20px;
+            font-weight: 700;
+            color: #4caf50;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.6);
+            margin: 0;
+            animation: pulse 2s infinite;
+          }
+
+          @keyframes fadeInUp {
+            from {
+              opacity: 0;
+              transform: translateX(-50%) translateY(20px);
+            }
+            to {
+              opacity: 1;
+              transform: translateX(-50%) translateY(0);
+            }
+          }
+
+          @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+          }
+
+          @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+          }
+
           /* Envelope Animation */
           .envelope-container {
             position: fixed;
@@ -774,6 +838,7 @@ export default function ScanFood() {
             display: flex;
             align-items: center;
             justify-content: center;
+            z-index: 5;
           }
 
           .photo {
@@ -803,28 +868,132 @@ export default function ScanFood() {
           .envelope.open .photo-1 {
             transform: scale(1) rotateY(-15deg) translateX(-140px) translateY(-30px);
             transition-delay: 0.5s;
+            animation: heroicGlow 2s ease-out 1.3s forwards;
           }
 
           .envelope.open .photo-2 {
             transform: scale(1) rotateY(0deg) translateX(0) translateY(-50px);
             transition-delay: 0.8s;
+            animation: heroicGlow 2s ease-out 1.6s forwards;
           }
 
           .envelope.open .photo-3 {
             transform: scale(1) rotateY(15deg) translateX(140px) translateY(-30px);
             transition-delay: 1.1s;
+            animation: heroicGlow 2s ease-out 1.9s forwards;
+          }
+
+          @keyframes heroicGlow {
+            0% {
+              filter: brightness(1) drop-shadow(0 0 0px rgba(255, 215, 0, 0));
+            }
+            25% {
+              filter: brightness(1.4) drop-shadow(0 0 20px rgba(255, 215, 0, 0.8));
+            }
+            50% {
+              filter: brightness(1.6) drop-shadow(0 0 30px rgba(255, 215, 0, 1)) drop-shadow(0 0 60px rgba(255, 223, 0, 0.6));
+            }
+            75% {
+              filter: brightness(1.3) drop-shadow(0 0 15px rgba(255, 215, 0, 0.6));
+            }
+            100% {
+              filter: brightness(1.1) drop-shadow(0 0 8px rgba(255, 215, 0, 0.3));
+            }
+          }
+
+          /* Golden Flash Effect */
+          .golden-flash-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 600px;
+            height: 600px;
+            z-index: 0;
+            pointer-events: none;
+          }
+
+          .golden-flash {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, 
+              rgba(255, 215, 0, 0.9) 0%,
+              rgba(255, 193, 7, 0.7) 20%,
+              rgba(255, 235, 59, 0.5) 40%,
+              rgba(255, 223, 0, 0.3) 60%,
+              transparent 80%);
+            border-radius: 50%;
+            opacity: 0;
+            transform: scale(0.5);
+            animation: goldenBurst 2s ease-out 1.3s forwards;
+          }
+
+          .radiant-glow {
+            position: absolute;
+            top: -50px;
+            left: -50px;
+            width: calc(100% + 100px);
+            height: calc(100% + 100px);
+            background: radial-gradient(circle,
+              rgba(255, 215, 0, 0.4) 0%,
+              rgba(255, 223, 0, 0.2) 30%,
+              transparent 70%);
+            border-radius: 50%;
+            opacity: 0;
+            animation: radiantPulse 3s ease-in-out 1.5s forwards;
+          }
+
+          @keyframes goldenBurst {
+            0% {
+              opacity: 0;
+              transform: scale(0.3) rotate(0deg);
+            }
+            20% {
+              opacity: 1;
+              transform: scale(1.2) rotate(45deg);
+            }
+            60% {
+              opacity: 0.8;
+              transform: scale(1.5) rotate(90deg);
+            }
+            100% {
+              opacity: 0;
+              transform: scale(2) rotate(180deg);
+            }
+          }
+
+          @keyframes radiantPulse {
+            0% {
+              opacity: 0;
+              transform: scale(0.8);
+            }
+            30% {
+              opacity: 0.6;
+              transform: scale(1.1);
+            }
+            70% {
+              opacity: 0.4;
+              transform: scale(1.3);
+            }
+            100% {
+              opacity: 0;
+              transform: scale(1.8);
+            }
           }
 
           .photo-1 {
-            z-index: 3;
+            z-index: 7;
           }
 
           .photo-2 {
-            z-index: 4;
+            z-index: 8;
           }
 
           .photo-3 {
-            z-index: 3;
+            z-index: 7;
           }
 
           @keyframes fadeIn {
@@ -973,6 +1142,11 @@ export default function ScanFood() {
             .envelope-next-button {
               bottom: 300px;
             }
+
+            .golden-flash-container {
+              width: 400px;
+              height: 400px;
+            }
           }
 
           /* iPhone 13 Landscape Mode (844px x 390px) */
@@ -1057,6 +1231,23 @@ export default function ScanFood() {
             .envelope-next-button {
               bottom: 10px;
               right: 10px;
+            }
+
+            .congratulations-message {
+              top: 10px;
+            }
+
+            .congratulations-message h2 {
+              font-size: 20px;
+            }
+
+            .congratulations-message p {
+              font-size: 14px;
+            }
+
+            .golden-flash-container {
+              width: 300px;
+              height: 300px;
             }
 
             .stats-grid {
