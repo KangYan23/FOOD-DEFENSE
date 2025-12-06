@@ -70,19 +70,38 @@ export default function PlayingInterface() {
                     backgroundRepeat: 'no-repeat',
                 }}
             >
-                {/* --- TOP BAR REMOVED AS REQUESTED --- */}
+                {/* --- TOP BAR --- */}
+                <div className="absolute top-0 left-0 w-full h-[15%] z-50 flex items-center justify-center pointer-events-none">
+                    <div className="bg-black/60 backdrop-blur-md border border-white/20 rounded-xl px-6 py-2 flex gap-4 pointer-events-auto">
+                        {/* Draggable Carrot Unit */}
+                        <div
+                            draggable="true"
+                            onDragStart={(e) => handleDragStart(e, 'carrot.jpg', 100)}
+                            className="w-16 h-16 relative bg-white/10 rounded-lg border border-white/30 cursor-grab active:cursor-grabbing hover:bg-white/20 transition-all hover:scale-105 group"
+                        >
+                            <Image
+                                src="/carrot.jpg"
+                                alt="Carrot Defender"
+                                fill
+                                className="object-contain p-1 group-hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]"
+                                sizes="64px"
+                            />
+                            <div className="absolute -bottom-2 -right-2 bg-yellow-500 text-black text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center border border-white">
+                                50
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
                 {/* --- GRID OVERLAY AREA --- */}
                 <div
                     className="absolute z-10"
                     style={{
-                        top: '25%',
+                        top: '20%',    // Push down more to avoid overlap
                         bottom: '10%',
-                        left: '28%',
-                        right: '28%',
-                        transform: 'perspective(600px) rotateX(30deg)',
-                        transformOrigin: 'bottom center',
-                        transformStyle: 'preserve-3d'
+                        left: '22%',   // Increase side margins to avoid house/cave
+                        right: '22%',
+                        // Removed 3D transforms to make it flat "in front of us"
                     }}
                 >
                     <div
@@ -108,11 +127,13 @@ export default function PlayingInterface() {
                                     >
                                         {/* Placed Unit */}
                                         {cell && (
-                                            <div className="relative w-full h-full flex items-center justify-center pointer-events-none z-10" style={{ transform: 'rotateX(-20deg) translateY(-20%)' }}>
-                                                <div className="absolute bottom-[0%] w-[60%] h-[15%] bg-black/40 rounded-[100%] blur-[4px]"></div>
-                                                <div className="relative w-[100%] h-[120%] animate-bounce-short">
+                                            <div
+                                                className="relative w-full h-full flex items-center justify-center pointer-events-none z-10"
+                                            >
+                                                {/* Simple scaling/positioning for 2D view */}
+                                                <div className="relative w-[90%] h-[90%] animate-bounce-short">
                                                     <Image
-                                                        src={`/${cell.type}.png`}
+                                                        src={cell.type.includes('.') ? `/${cell.type}` : `/${cell.type}.png`}
                                                         alt="Defender"
                                                         fill
                                                         className="object-contain drop-shadow-2xl"
