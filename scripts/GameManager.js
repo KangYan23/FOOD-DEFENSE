@@ -4,9 +4,8 @@ export const COLS = 9;
 const UNIT_STATS = {
     'sun_flower_animation.mp4': { hp: 100 },
     'pea_shooter_animation.mp4': { hp: 150 },
-    'carrot_guardian.png': { hp: 250 }, // Tanker
+    'carrot_guardian_animation.mp4': { hp: 250 }, // Tanker
 };
-
 
 export class GameManager {
     constructor() {
@@ -108,9 +107,38 @@ export class GameManager {
             }
         });
 
-        // Remove enemies that have passed the left edge (Game Over condition? For now just remove)
-        // keeping them a bit longer to walk off screen
-        this.enemies = this.enemies.filter(e => e.col > -2);
+        // Defender Projectile Logic (Pea Shooter)
+        if (grid) {
+            grid.forEach((row, rowIndex) => {
+                row.forEach((cell, colIndex) => {
+                    if (cell && cell.type.includes('pea_shooter')) {
+                        // Check if time to fire
+                        if (now - cell.lastAttackTime > 1500) { // Fire every 1.5s
+                            // Find target in this row
+                            // Enemies in this row, to the right of the shooter
+                            const targets = this.enemies.filter(e => e.row === rowIndex && e.col > colIndex);
+                            if (targets.length > 0) {
+                                // Target the closest one (smallest col)
+                                targets.sort((a, b) => a.col - b.col);
+                                const target = targets[0];
+
+                                // Deal damage
+                                target.hp -= 25; // Pea damage
+                                cell.lastAttackTime = now;
+                                gridModified = true;
+                            }
+                        }
+                    }
+                });
+            });
+        }
+
+        // Remove dead enemies
+        this.enemies = this.enemies.filter(e => {
+            if (e.hp <= 0) return false;
+            // Remove passed left edge
+            return e.col > -2;
+        });
 
         return { enemies: [...this.enemies], gridModified };
     }
